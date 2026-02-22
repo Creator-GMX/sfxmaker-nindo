@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>SFX Maker — Game Audio Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Animated background -->
+  <div class="bg-layer">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+    <canvas id="waveform-canvas"></canvas>
+  </div>
+
+  <!-- App shell -->
+  <div class="app">
+
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 32 32" fill="none">
+              <rect x="2" y="10" width="4" height="12" rx="2" fill="currentColor" opacity=".4"/>
+              <rect x="8" y="6" width="4" height="20" rx="2" fill="currentColor" opacity=".6"/>
+              <rect x="14" y="2" width="4" height="28" rx="2" fill="currentColor"/>
+              <rect x="20" y="8" width="4" height="16" rx="2" fill="currentColor" opacity=".7"/>
+              <rect x="26" y="13" width="4" height="10" rx="2" fill="currentColor" opacity=".4"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span class="logo-name">SFX<em>Maker</em></span>
+            <span class="logo-sub">Game Audio Studio</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="status-pill" id="status-pill">
+          <span class="status-dot"></span>
+          <span id="status-label">Pronto</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="step-display" id="step-counter">00 / 16</span>
+      </div>
+    </header>
+
+    <!-- ── Main ── -->
+    <main class="main">
+
+      <!-- ── Transport Bar ── -->
+      <section class="transport">
+        <div class="transport-group transport-play">
+          <button class="btn-play" id="play-btn" title="Play / Stop">
+            <svg class="icon-play" id="icon-play" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21" fill="currentColor"/></svg>
+            <svg class="icon-stop hidden" id="icon-stop" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor"/></svg>
+          </button>
+
+          <div class="bpm-control">
+            <label class="ctrl-label">BPM</label>
+            <div class="bpm-row">
+              <button class="btn-bpm" id="bpm-down">−</button>
+              <input type="number" id="bpm" value="120" min="40" max="240" class="bpm-input">
+              <button class="btn-bpm" id="bpm-up">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="transport-group transport-actions">
+          <button class="btn-action" id="clear-btn" title="Limpar grade">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14H6L5,6"/><path d="M10,11v6M14,11v6"/></svg>
+            <span>Limpar</span>
+          </button>
+          <button class="btn-action" id="random-btn" title="Padrão aleatório">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,3 21,3 21,8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21,16 21,21 16,21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+            <span>Random</span>
+          </button>
+          <button class="btn-action btn-generate" id="track-gen-btn" title="Gerar trilha com IA">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+            <span>Gerar Trilha</span>
+          </button>
+        </div>
+
+        <div class="transport-group transport-export">
+          <button class="btn-export" id="export-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21,15v4a2,2,0,0,1-2,2H5a2,2,0,0,1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Exportar MP3</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Settings Panel ── -->
+      <section class="settings">
+        <div class="setting-card">
+          <label class="setting-label">Tipo de Onda</label>
+          <div class="custom-select-wrap">
+            <select id="osc-type" class="custom-select">
+              <optgroup label="Básicas">
+                <option value="sine">Seno</option>
+                <option value="square" selected>Quadrada</option>
+                <option value="sawtooth">Dente de Serra</option>
+                <option value="triangle">Triângulo</option>
+              </optgroup>
+              <optgroup label="8-bit / Retro">
+                <option value="pulse25">Pulso 25% (NES)</option>
+                <option value="pulse12">Pulso 12.5% (GameBoy)</option>
+                <option value="chiptune">Chiptune (Oitavas)</option>
+                <option value="fatsaw">Fat Saw (Detune)</option>
+                <option value="supersquare">Super Square (x3)</option>
+              </optgroup>
+              <optgroup label="Síntese">
+                <option value="fm">FM Bell / Metal</option>
+                <option value="fm_bass">FM Bass</option>
+                <option value="am">AM Tremolo</option>
+                <option value="ringmod">Ring Mod</option>
+                <option value="karplus">Karplus-Strong (Corda)</option>
+              </optgroup>
+              <optgroup label="Percussão">
+                <option value="noise_white">Ruído Branco</option>
+                <option value="noise_pink">Ruído Rosa</option>
+                <option value="kick">Kick (Bombo)</option>
+                <option value="snare">Snare (Caixa)</option>
+                <option value="hihat">Hi-Hat</option>
+              </optgroup>
+              <optgroup label="Especiais">
+                <option value="pad">Pad Suave</option>
+                <option value="bass">Bass Lead</option>
+                <option value="laser">Laser SFX</option>
+                <option value="coin">Coin SFX</option>
+                <option value="explosion">Explosão SFX</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <label class="setting-label">Escala Musical</label>
+          <div class="custom-select-wrap">
+            <select id="scale-type" class="custom-select">
+              <option value="major">Maior (Dó)</option>
+              <option value="minor">Menor (Lá)</option>
+              <option value="pentatonic">Pentatônica</option>
+              <option value="blues">Blues</option>
+              <option value="chromatic">Cromática</option>
+              <option value="dorian">Dórica</option>
+              <option value="phrygian">Frígia</option>
+              <option value="japanese">Japonesa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <label class="setting-label">Estilo da Trilha</label>
+          <div class="custom-select-wrap">
+            <select id="genre-type" class="custom-select">
+              <option value="action">⚔️ Ação / Battle</option>
+              <option value="explore">🗺️ Exploração</option>
+              <option value="boss">💀 Chefe Final</option>
+              <option value="ambient">🌌 Ambiente</option>
+              <option value="chiptune_retro">🕹️ Chiptune Retro</option>
+              <option value="dungeon">🏚️ Dungeon</option>
+              <option value="victory">🏆 Vitória</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <label class="setting-label">Colunas</label>
+          <div class="custom-select-wrap">
+            <select id="grid-cols" class="custom-select">
+              <option value="8">8</option>
+              <option value="16" selected>16</option>
+              <option value="32">32</option>
+              <option value="64">64</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-card setting-card--slider">
+          <label class="setting-label">Volume <span id="volume-val">70%</span></label>
+          <input type="range" id="volume" min="0" max="100" value="70" class="slider">
+        </div>
+
+        <div class="setting-card setting-card--slider">
+          <label class="setting-label">Reverb <span id="reverb-val">20%</span></label>
+          <input type="range" id="reverb" min="0" max="100" value="20" class="slider">
+        </div>
+      </section>
+
+      <!-- ── Sequencer ── -->
+      <section class="sequencer-wrap">
+        <div class="sequencer-scroll" id="sequencer-scroll">
+          <div class="note-labels" id="note-labels"></div>
+          <div class="sequencer-grid-area">
+            <div class="beat-ruler" id="beat-ruler"></div>
+            <div id="sequencer" class="grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Gen Toast ── -->
+      <div class="toast hidden" id="gen-toast">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+        <span id="gen-toast-text">Gerando trilha...</span>
+      </div>
+
+      <!-- ── Help ── -->
+      <section class="help">
+        <details class="help-details">
+          <summary class="help-summary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09,9a3,3,0,0,1,5.83,1c0,2-3,3-3,3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Como usar
+          </summary>
+          <div class="help-grid">
+            <div class="help-item">
+              <strong>Ativar notas</strong>
+              <p>Clique nos quadrados do sequenciador. Cada linha = uma nota, cada coluna = um tempo.</p>
+            </div>
+            <div class="help-item">
+              <strong>Gerar Trilha</strong>
+              <p>Escolha um estilo e clique em "Gerar Trilha" para uma composição automática inteligente.</p>
+            </div>
+            <div class="help-item">
+              <strong>Tipos de onda</strong>
+              <p>Experimente FM, Karplus-Strong e Pad para sons únicos. Kick, Snare e Hi-Hat para percussão real.</p>
+            </div>
+            <div class="help-item">
+              <strong>Exportar</strong>
+              <p>Clique em "Exportar MP3" para baixar sua música. Requer lame.min.js para MP3, ou gera WAV automaticamente.</p>
+            </div>
+          </div>
+        </details>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="lame.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
